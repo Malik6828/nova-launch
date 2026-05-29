@@ -16,6 +16,22 @@ const NETWORK_CONFIGS = {
 } as const;
 
 /**
+ * Ordered lists of Soroban RPC endpoints per network.
+ * The first endpoint is tried first; on error/timeout/rate-limit the next
+ * is tried. Add community or private RPC nodes here to increase resilience.
+ */
+export const SOROBAN_RPC_ENDPOINTS: Record<'testnet' | 'mainnet', readonly string[]> = {
+  testnet: [
+    'https://soroban-testnet.stellar.org',
+    'https://rpc-futurenet.stellar.org', // secondary public endpoint
+  ],
+  mainnet: [
+    'https://soroban-mainnet.stellar.org',
+    'https://mainnet.stellar.validationcloud.io/v1/soroban/rpc',
+  ],
+};
+
+/**
  * Soroban contract IDs are 56-character base32 strings starting with 'C'.
  * Testnet contract IDs are distinct from mainnet ones — a contract deployed
  * on testnet cannot be used on mainnet and vice versa.

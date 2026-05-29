@@ -10,7 +10,7 @@ import {
   Keypair,
   Account,
 } from '@stellar/stellar-sdk';
-import { STELLAR_CONFIG, getNetworkConfig } from '../config/stellar';
+import { STELLAR_CONFIG, getNetworkConfig, SOROBAN_RPC_ENDPOINTS } from '../config/stellar';
 import type { 
   AppError, 
   BurnTokenParams, 
@@ -23,6 +23,7 @@ import { WalletService } from './wallet';
 import type { ProposalParams, VoteParams } from '../types/governance';
 import type { OnChainBuybackCampaign } from '../types/campaign';
 import { decodeSimulationError } from './stellarErrors';
+import { StellarRpcClient } from './StellarRpcClient';
 
 export interface TransactionDetails {
   hash: string;
@@ -55,6 +56,7 @@ export interface TokenDeploymentResult {
 export class StellarService {
   private network: 'testnet' | 'mainnet';
   private server: Soroban.Server;
+  private rpcClient: StellarRpcClient;
   private horizonUrl: string;
   private networkPassphrase: string;
   private contractClient: Contract | null = null;
@@ -62,7 +64,10 @@ export class StellarService {
   constructor(network: 'testnet' | 'mainnet' = 'testnet') {
     this.network = network;
     const config = getNetworkConfig(network);
-    
+    const endpoints = SOROBAN_RPC_ENDPOINTS[network];
+
+    this.rpcClient = new StellarRpcClient(endpoints);
+    // Keep a direct server instance for callers that haven't been migrated yet
     this.server = new Soroban.Server(config.sorobanRpcUrl);
     this.horizonUrl = config.horizonUrl;
     this.networkPassphrase = config.networkPassphrase;
@@ -72,6 +77,10 @@ export class StellarService {
 
   getNetwork(): 'testnet' | 'mainnet' {
     return this.network;
+  }
+
+  getRpcClient(): StellarRpcClient {
+    return this.rpcClient;
   }
 
   private initializeContractClient(): void {
